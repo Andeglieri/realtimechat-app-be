@@ -1,0 +1,16 @@
+node_modules/
+yarn.lock
+package-lock.json
+.env
+dist/
+*.log
+prisma/dev.db
+prisma/test.db
+prisma/.env
+.cache/
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+coverage/

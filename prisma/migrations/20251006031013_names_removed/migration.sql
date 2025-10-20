@@ -1,0 +1,14 @@
+/*
+  Warnings:
+
+  - You are about to drop the column `firstName` on the `user` table. All the data in the column will be lost.
+  - You are about to drop the column `lastName` on the `user` table. All the data in the column will be lost.
+  - A unique constraint covering the columns `[userName]` on the table `user` will be added. If there are existing duplicate values, this will fail.
+
+*/
+-- AlterTable
+ALTER TABLE "user" DROP COLUMN "firstName",
+DROP COLUMN "lastName";
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_userName_key" ON "user"("userName");
