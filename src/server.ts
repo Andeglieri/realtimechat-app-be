@@ -11,7 +11,7 @@ export function createServer() {
   app.use(cors());
   app.use(express.json());
   app.use("/users", user);
-  app.use("/login", auth);
+  app.use("/auth", auth);
   
   const httpServer = http.createServer(app);
   const io = new Server(httpServer, {
