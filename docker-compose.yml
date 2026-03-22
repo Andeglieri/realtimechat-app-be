@@ -1,0 +1,99 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: chat-postgres
+    environment:
+      POSTGRES_DB: chat-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  cassandra10:
+    image: cassandra:5.0
+    container_name: cassandra10
+    hostname: cassandra10
+    environment: &cassandra-environment
+      CASSANDRA_CLUSTER_NAME: ChatCluster
+      CASSANDRA_DC: datacenter1
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_NUM_TOKENS: 16
+      MAX_HEAP_SIZE: 512M
+      HEAP_NEWSIZE: 128M
+    ports:
+      - "9042:9042"
+    networks:
+      - app-network
+    volumes:
+      - cassandra10_data:/var/lib/cassandra
+
+  cassandra20:
+    image: cassandra:5.0
+    container_name: cassandra20
+    hostname: cassandra20
+    environment:
+      <<: *cassandra-environment
+      CASSANDRA_SEEDS: cassandra10
+    depends_on:
+      - cassandra10
+    ports:
+      - "9043:9042"
+    networks:
+      - app-network
+    volumes:
+      - cassandra20_data:/var/lib/cassandra
+
+  cassandra30:
+    image: cassandra:5.0
+    container_name: cassandra30
+    hostname: cassandra30
+    environment:
+      <<: *cassandra-environment
+      CASSANDRA_SEEDS: cassandra10
+    depends_on:
+      - cassandra10
+    ports:
+      - "9044:9042"
+    networks:
+      - app-network
+    volumes:
+      - cassandra30_data:/var/lib/cassandra
+
+  app:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    container_name: chat-backend-app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - cassandra10
+      - cassandra20
+      - cassandra30
+    environment:
+      PORT: 4000
+      NODE_ENV: development
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/chat-db?schema=public
+      JWT_SECRET: 8b9a6d7e1f3a9c2d4b5f7e8a9d0b1c2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c
+      FRONTEND_ORIGIN: http://localhost:3000
+      CASSANDRA_CONTACT_POINTS: cassandra10
+      CASSANDRA_DATACENTER: datacenter1
+      CASSANDRA_KEYSPACE: chat_app
+    ports:
+      - "4000:4000"
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  cassandra10_data:
+  cassandra20_data:
+  cassandra30_data:
+
+networks:
+  app-network:
+    driver: bridge
