@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../config/db";
 import { generateToken } from "../utils/jwt";
+import { setAuthCookie } from "../utils/cookies";
 
 export const register = async (req: Request, res: Response) => {
     try {
@@ -25,7 +26,17 @@ export const register = async (req: Request, res: Response) => {
       });
 
       const token = generateToken({id: user.id});
-      res.json({sucess: true, message: "User registered successfully.", data: { id: user.id, token }});
+      setAuthCookie(res, token);
+
+      res.status(201).json({
+        success: true,
+        message: "User registered successfully.",
+        data: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+        },
+      });
   } catch (err) {
     res.status(400).json({ error: "Error creating user.", message: err });
   }
@@ -50,10 +61,17 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const token = generateToken({id: user.id});
+    setAuthCookie(res, token);
 
-    res.status(200).json({ message: "Authenticated successfully.", token });
+    res.status(200).json({
+      message: "Authenticated successfully.",
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+      },
+    });
   } catch(err){
     res.status(400).json({ error: "Authentication failed.", message: err });
   }
-
 }

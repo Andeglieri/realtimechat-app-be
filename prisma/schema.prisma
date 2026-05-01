@@ -11,6 +11,6 @@ model user {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   email     String   @unique
-  username  String   @unique(map: "user_userName_key")
+  username  String   @map("userName") @unique(map: "user_userName_key")
   password  String
 }

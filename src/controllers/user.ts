@@ -3,7 +3,14 @@ import prisma from "../config/db";
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        createdAt: true,
+        email: true,
+        username: true,
+      },
+    });
     res.json(users);
   } catch (error) {
     console.error("Failed fetching users:", error);
@@ -17,7 +24,13 @@ export const getUser = async (req: Request, res: Response) => {
       {
         where: {
           email: req.params.email
-        }
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          email: true,
+          username: true,
+        },
       })
     res.json(user);
   } catch (error) {
@@ -28,6 +41,10 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {
+    if (res.locals.authUserId !== req.params.id) {
+      return res.status(403).json({ message: "You can only delete your own user." });
+    }
+
     const user = await prisma.user.delete({
       where: {
         id: req.params.id
